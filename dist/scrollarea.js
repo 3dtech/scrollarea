@@ -494,7 +494,7 @@ class View_View {
         @param delta Vector instance */
     move (delta) {
         if (delta) {
-            this.setViewPosition(vec2_default.a.add(delta, this.getViewPosition(), delta));
+            this.setViewPosition(vec2_default.a.sub(delta, this.getViewPosition(), delta));
         }
     }
 
@@ -610,7 +610,6 @@ class ScrollBar_ScrollBar {
           
         window.addEventListener('mouseup', e => {
             //console.log('mouseup', e);
-            this.onEndDrag(this.deltaMove, Date.now() - this.lastTime);
             this.mousedown = false;
         });
 
@@ -623,7 +622,6 @@ class ScrollBar_ScrollBar {
 
         window.addEventListener("touchend", e => {
             // console.log('touchend', e);
-            //this.onEndDrag()
             this.lastTouch = null;
         }, false);
 
@@ -836,23 +834,33 @@ class ScrollArea_ScrollArea {
         this.attachEvents(this.container);
         
         this.scrollbar = new ScrollBar_ScrollBar(this.container, "right");
-		this.construct();
+
+		if (typeof ResizeObserver != "undefined" &&  this.content) {
+			var scope = this;
+			// creates a continues loop of resizes when not limited to size
+			this.resizeObserver = new ResizeObserver(function () {
+				console.log('resizeObserver2');
+				scope.resize();
+			});
+			    
+			this.resizeObserver.observe(this.content);
+		}
 	}
 
     attachEvents (element) {
-        element.addEventListener("mousewheel", function(event) {
+        element.addEventListener("mousewheel", e => {
 			var direction = 0;
-			if(event.originalEvent)
-				event = event.originalEvent;
+			if(e.originalEvent)
+				e = e.originalEvent;
 
-			if ('wheelDelta' in event) {
-				direction = event.wheelDelta < 0 ? 1 : event.wheelDelta > 0 ? -1 : 1;
+			if ('wheelDelta' in e) {
+				direction = e.wheelDelta < 0 ? 1 : e.wheelDelta > 0 ? -1 : 1;
 			}
 			else {
-				direction = event.deltaY > 0 ? 1 : event.deltaY < 0 ? -1 : 1;
+				direction = e.deltaY > 0 ? 1 : e.deltaY < 0 ? -1 : 1;
 			}
 
-			scope.scroll(vec2_default.a.fromValues(0, scope.getOption("wheelSpeed") * direction));
+			this.scroll(vec2_default.a.fromValues(0, scope.getOption("wheelSpeed") * direction));
 		});
 
         element.addEventListener('mousedown', e => {
@@ -915,15 +923,7 @@ class ScrollArea_ScrollArea {
             }
         }, false);
 
-        if (typeof ResizeObserver != "undefined" && element) {
-			var scope = this;
-			// creates a continues loop of resizes when not limited to size
-			this.resizeObserver = new ResizeObserver(function () {
-				scope.resize();
-			});
-			    
-			this.resizeObserver.observe(element);
-		}
+
     }
 
     /** 
@@ -968,7 +968,6 @@ class ScrollArea_ScrollArea {
 
     /** Call when resizing the view or child element */
 	resize () {
-        console.log('resize', this.content.clientWidth, this.content.clientHeight, 'container', this.container.clientWidth, this.container.clientHeight)
 		if(this.getOption("swapContainers")){
 			this.view.setViewSize(parseInt(this.content.clientWidth), parseInt(this.content.clientHeight));
 			this.view.setContentSize(parseInt(this.container.clientWidth), parseInt(this.container.clientHeight));
@@ -978,6 +977,11 @@ class ScrollArea_ScrollArea {
 			this.view.setContentSize(parseInt(this.content.clientWidth), parseInt(this.content.clientHeight));
 		}
 		this.checkIfScrollIsNeeded();
+	}
+
+	/** Reset scroll */
+	reset () {
+		this.setContentOffset([0, 0]);
 	}
 
     checkIfScrollIsNeeded (){
@@ -1049,15 +1053,6 @@ class ScrollArea_ScrollArea {
 				}
 			} 
 		}
-	}
-
-    clear () {
-
-	}
-
-	construct () {
-		this.clear();
-		this.resize();
 	}
 
     /** Scrolls child elements immediately by given delta within bounds of the container. Does not update mouse position or mouse delta.

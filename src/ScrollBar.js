@@ -60,7 +60,6 @@ export default class ScrollBar {
           
         window.addEventListener('mouseup', e => {
             //console.log('mouseup', e);
-            this.onEndDrag(this.deltaMove, Date.now() - this.lastTime);
             this.mousedown = false;
         });
 
@@ -73,7 +72,6 @@ export default class ScrollBar {
 
         window.addEventListener("touchend", e => {
             // console.log('touchend', e);
-            //this.onEndDrag()
             this.lastTouch = null;
         }, false);
 

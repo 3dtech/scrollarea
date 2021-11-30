@@ -50,7 +50,7 @@ export default class View {
         @param delta Vector instance */
     move (delta) {
         if (delta) {
-            this.setViewPosition(vec2.add(delta, this.getViewPosition(), delta));
+            this.setViewPosition(vec2.sub(delta, this.getViewPosition(), delta));
         }
     }
 

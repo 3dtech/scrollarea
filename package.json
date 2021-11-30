@@ -1,7 +1,7 @@
 {
-  "name": "on-screen-js-keyboard",
-  "version": "1.2.3",
-  "description": "A vanilla JavaScript on screen keyboard",
+  "name": "@3dwayfinder/scrollarea",
+  "version": "1.0.1",
+  "description": "A vanilla JS scrollarea that supports touch, mouse and scrollwheel",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "grunt"
@@ -11,20 +11,21 @@
     "url": "git+https://github.com/3dtech/on-screen-keyboard.git"
   },
   "keywords": [
-    "js",
-    "on",
-    "screen",
-    "keyboard",
-    "touch"
+    "javascript",
+    "area",
+    "scoll",
+    "touch",
+    "mouse",
+    "mousewheel"
   ],
-  "module": "dist/osk.common.js",
-  "main": "dist/osk.common.js",
+  "module": "dist/scrollarea.common.js",
+  "main": "dist/scrollarea.common.js",
   "author": "Taavi Juursalu",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/3dtech/on-screen-keyboard/issues"
+    "url": "https://github.com/3dtech/scrollarea/issues"
   },
-  "homepage": "https://github.com/3dtech/on-screen-keyboard#readme",
+  "homepage": "https://github.com/3dtech/scrollarea#readme",
   "devDependencies": {
     "grunt": "^1.0.1",
     "grunt-contrib-clean": "^1.1.0",
@@ -39,5 +40,6 @@
   ],
   "directories": {
     "test": "tests"
-  }
+  },
+  "dependencies": {}
 }
