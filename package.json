@@ -1,0 +1,43 @@
+{
+  "name": "on-screen-js-keyboard",
+  "version": "1.2.3",
+  "description": "A vanilla JavaScript on screen keyboard",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "grunt"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/3dtech/on-screen-keyboard.git"
+  },
+  "keywords": [
+    "js",
+    "on",
+    "screen",
+    "keyboard",
+    "touch"
+  ],
+  "module": "dist/osk.common.js",
+  "main": "dist/osk.common.js",
+  "author": "Taavi Juursalu",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/3dtech/on-screen-keyboard/issues"
+  },
+  "homepage": "https://github.com/3dtech/on-screen-keyboard#readme",
+  "devDependencies": {
+    "grunt": "^1.0.1",
+    "grunt-contrib-clean": "^1.1.0",
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-copy": "^0.1.0",
+    "grunt-webpack": "^3.1.3",
+    "webpack": "^4.20.2",
+    "webpack-cli": "^3.1.2"
+  },
+  "files": [
+    "dist"
+  ],
+  "directories": {
+    "test": "tests"
+  }
+}

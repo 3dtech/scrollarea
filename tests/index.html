@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>ScrollArea test page</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+</head>
+<body>
+    <h1>Getting started with webpack and ES6 modules – the demo</h1>
+    <div id="area" class="scroll-area">
+         <div class="scroll-content">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec tristique risus lorem, ac pretium metus elementum at. Aliquam commodo posuere enim cursus blandit. Nulla id magna non nunc ultricies semper quis ac lacus. Praesent ut pharetra massa. In vehicula lacus felis, vitae rhoncus est interdum nec. Etiam eu lacus euismod, auctor justo sed, aliquet risus. Suspendisse convallis, nisl ut dapibus condimentum, quam tortor scelerisque felis, eu tincidunt ipsum metus consequat ipsum. Donec feugiat sapien nec mauris feugiat, nec tempus tellus sagittis.
+
+            Duis tincidunt ultricies lacus eget tempor. Mauris condimentum erat diam, vel mollis magna condimentum id. Curabitur eget maximus dolor, vel eleifend dui. Vivamus ornare, lacus vitae ullamcorper condimentum, purus velit porttitor libero, ac pellentesque nulla eros eu orci. Duis in finibus purus. Duis consequat ipsum nec sapien tincidunt consequat. Ut luctus, lorem nec accumsan vestibulum, quam sapien bibendum libero, ut pretium odio ex id lorem. Donec vel neque mollis, convallis odio dignissim, rhoncus tellus. Phasellus tempus mi vitae nunc dignissim, ut iaculis nisl porttitor. Nunc mi ipsum, mollis sit amet gravida quis, ultricies ac metus. Praesent rutrum sed odio eu rhoncus. Cras scelerisque justo ullamcorper ligula dictum, in auctor quam porta. Nullam fermentum facilisis nisl, quis varius nunc interdum nec.
+            
+            Mauris quis porttitor magna. Integer mollis lacinia hendrerit. Fusce nulla turpis, sollicitudin porttitor neque vel, gravida rutrum tellus. Etiam ut leo fermentum, pharetra mi a, auctor odio. Sed a sem volutpat nulla interdum faucibus a et ipsum. Mauris sagittis in ipsum a luctus. Cras tincidunt metus dolor, nec laoreet lacus imperdiet id. Praesent dapibus nibh mi, a pellentesque mi ultrices et. Aenean egestas finibus leo, vitae dapibus lorem volutpat ut. Cras et volutpat quam, non faucibus ligula. Etiam in tellus iaculis, pulvinar ante quis, pellentesque diam. Maecenas lobortis enim sed odio ullamcorper, a egestas orci rhoncus. Aenean luctus ex lorem, eu dictum ante fringilla sit amet. Integer condimentum, neque in iaculis hendrerit, eros velit posuere arcu, eu pulvinar orci turpis ut massa. Suspendisse erat diam, eleifend in magna sed, consectetur commodo ipsum.            
+         </div>
+    </div>
+    <script src="../dist/scrollarea.js"></script>
+    <script>
+        (function() {
+            console.log(typeof ScrollArea);
+            var scrollarea = new ScrollArea.ScrollArea('area');
+            console.log('ScrollArea', scrollarea);
+        })();
+    </script>
+    <style>
+        .scroll-area {
+            width: 40ch;
+            height: 20ch;
+            overflow: hidden;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            cursor: default;
+        }
+    </style>
+</body>
+</html>
