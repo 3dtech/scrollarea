@@ -665,14 +665,14 @@ class ScrollBar_ScrollBar {
 		window.requestAnimationFrame(function() {
 			scope.view.move(delta);
 			delta = vec2_default.a.clone(scope.view.getContentPosition());
-			scope.setContentOffset(delta);
+			scope.setPosition(delta);
 			if(scope.updateCallback && typeof scope.updateCallback === "function"){
 				scope.updateCallback(me);
 			}
 		});
 	}
 
-    setContentOffset (pos) {
+    setPosition (pos) {
 		var sign = 1;
 		if (this.getOption("swapContainers")) {
 			sign = -1;
@@ -711,29 +711,7 @@ class ScrollBar_ScrollBar {
 		}
 	}
 
-
-    	/**
-	*	Setup the scrollbar. Calculates bars length.
-	*	@param containerSize the length (height or width) of the element wher the content is displayed
-	*/
-	setup (containerSize, contentSize) {
-		this.contentSize = contentSize;
-		this.containerSize = containerSize;
-
-		var ratio = this.containerSize/this.contentSize;
-		if(this.vertical){
-			this.element.height(containerSize);
-			this.bar.height(Math.max(5, Math.floor(containerSize*ratio)));
-		}
-		else {
-			this.element.width(containerSize);
-			this.bar.width(Math.max(5, Math.floor(containerSize*ratio)));
-		}
-
-		this.resize();
-	}
-
-	/**
+    /**
 	*	Clear the bars position
 	*/
 	clear (){
@@ -762,14 +740,6 @@ class ScrollBar_ScrollBar {
 			return this.view.getContentSize()[0];
 	}
 
-	setPosition (newPos) {
-		if(Modernizr.csstransforms){//this will be rendered on GPU, faster
-			this.bar.css(Modernizr.prefixed("transform"), "translate("+newPos[0]+"px,"+newPos[1]+"px)");
-		}
-		else
-			this.bar.css("left", newPos[0]+"px").css("top", newPos[1]+"px");
-	}
-
 	/**
 	*	Set the bar position depending of the given content position
 	*	@param contentPosition the top/left position of the inner content.
@@ -782,48 +752,10 @@ class ScrollBar_ScrollBar {
 		this.setPosition(this.view.getContentPosition());
 	}
 
-	onStartDrag (event) {
-		if(event && event.gesture){
-			event.gesture.preventDefault();	
-			event.gesture.stopPropagation();
-		}
-	}
-
-	onDrag (event) {
-		if(!(event && event.gesture)){
-			return;	
-		}
-
-		event.gesture.preventDefault();	
-		event.gesture.stopPropagation();
-		var v = vec2_default.a.fromValues(event.gesture.deltaX, event.gesture.deltaY);
-		this.view.move(vec2_default.a.negate(vec2_default.a.create(), vec2_default.a.sub(vec2_default.a.create(), this.mouseDelta, v)));
-		this.mouseDelta = v;
-		this.setPosition(this.view.getContentPosition());
-		if(this.onScroll && typeof this.onScroll === "function"){
-			this.onScroll(this.getPercentage());
-		}
-	}
-
-	onTap (event){
-		if(!(event && event.gesture)){
-			return;	
-		}
-
-		event.gesture.preventDefault();	
-		event.gesture.stopPropagation();
-
-		var v = vec2_default.a.fromValues(event.gesture.deltaX, event.gesture.deltaY);		
-	}
-
 	getPercentage () {
 		var distFrom = vec2_default.a.len(this.view.getViewPosition());
 
 		return distFrom/this.getViewLength();
-	}
-
-	onEndDrag (event) {
-		this.mouseDelta = vec2_default.a.create();
 	}
 
     resize () {
@@ -897,6 +829,9 @@ class ScrollArea_ScrollArea {
         }
 
         this.container.style.position = 'relative';
+        this.container.style.overflow = 'hidden';
+        this.container.style.overflow = 'hidden';
+        this.container.style.userSelect = 'none';
         
         this.attachEvents(this.container);
         

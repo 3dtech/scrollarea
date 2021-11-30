@@ -49,6 +49,9 @@ export default class ScrollArea {
         }
 
         this.container.style.position = 'relative';
+        this.container.style.overflow = 'hidden';
+        this.container.style.overflow = 'hidden';
+        this.container.style.userSelect = 'none';
         
         this.attachEvents(this.container);
         
