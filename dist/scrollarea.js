@@ -860,7 +860,7 @@ class ScrollArea_ScrollArea {
 				direction = e.deltaY > 0 ? 1 : e.deltaY < 0 ? -1 : 1;
 			}
 
-			this.scroll(vec2_default.a.fromValues(0, scope.getOption("wheelSpeed") * direction));
+			this.scroll(vec2_default.a.fromValues(0, this.getOption("wheelSpeed") * direction));
 		});
 
         element.addEventListener('mousedown', e => {
@@ -893,6 +893,7 @@ class ScrollArea_ScrollArea {
         element.addEventListener("touchstart", e => {
            // console.log('touchstart', e);
             if (e.touches && e.touches.length > 0) {
+				this.mousedown = true;
                 this.lastTouch = vec2_default.a.fromValues(e.touches[0].screenX, e.touches[0].screenY);
             }
         }, false);
@@ -901,15 +902,17 @@ class ScrollArea_ScrollArea {
             // console.log('touchend', e);
             //this.onEndDrag()
             this.lastTouch = null;
+			this.mousedown = false;
         }, false);
 
         window.addEventListener("touchcancel", e => {
             this.lastTouch = null;
+			this.mousedown = false;
         }, false);
 
         window.addEventListener("touchmove", e => {
             console.log('touchmove', e);
-            if (e.touches && e.touches.length > 0) {
+            if (e.touches && e.touches.length > 0 && this.mousedown) {
                 if (this.lastTouch) {
                     var v = vec2_default.a.fromValues(e.touches[0].screenX, e.touches[0].screenY)
                     if(this.getOption("reverse")){
