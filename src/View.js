@@ -11,6 +11,7 @@ export default class View {
         // View and content size
         this.contentSize=contentSize;      ///< Width and height of content
         this.viewSize=viewSize;            ///< Width and height of current view
+        this.contentViewRatio = vec2.div(vec2.create(), this.getViewSize(), this.getContentSize()); // Ratio of content and view
         this._maxPosition = vec2.create(); /// Buffer vector for clampPosition
         this._minPosition = vec2.create(); /// Buffer vector for clampPosition
 
@@ -24,7 +25,6 @@ export default class View {
 
     /** Gets position of content */
     getContentPosition () {
-
         return this.position;
     }
 
@@ -33,14 +33,13 @@ export default class View {
         vec2.max(this._maxPosition, this.getViewSize(), this.getContentSize());
         vec2.min(this._minPosition, this.getViewSize(), this.getContentSize());
         vec2.sub(this._maxPosition, this._maxPosition, this._minPosition);
-        this.position = this.clamp(this.position, vec2.create(), this._maxPosition);
+        this.position = this.clamp(this.position, vec2.create(), this._maxPosition);        
     }
 
     /** Sets current position
         @param position New position */
     setViewPosition (position) {
         if(!isNaN(parseFloat(position[0])) && isFinite(position[0]) && !isNaN(parseFloat(position[1])) && isFinite(position[1])){
-            //console.log('setViewPosition1', position);
             this.position = position;
             this.clampPosition();
         }
@@ -55,21 +54,23 @@ export default class View {
     }
 
     setViewSize (width, height) {
-        this.viewSize = vec2.fromValues(width, height);
+        vec2.set(this.viewSize, width, height);
+        vec2.div(this.contentViewRatio, this.getViewSize(), this.getContentSize());
         this.clampPosition();
     }
 
     setContentSize (width, height) {
-        this.contentSize = vec2.fromValues(width, height);
+        vec2.set(this.contentSize, width, height);
+        vec2.div(this.contentViewRatio, this.getViewSize(), this.getContentSize());
         this.clampPosition();
     }
 
     isContentLonger (){
-        return (this.viewSize[1] <= this.contentSize[1]);
+        return (this.viewSize[1] < this.contentSize[1]);
     }
 
     isContentWider (){
-        return (this.viewSize[0] <= this.contentSize[0]);
+        return (this.viewSize[0] < this.contentSize[0]);
     }
 
     /** Gets size content */
@@ -100,6 +101,10 @@ export default class View {
         }
         
 		return this._vec2cache;
+    }
+
+    getContentViewRatio() {
+        return this.contentViewRatio;
     }
 };
     

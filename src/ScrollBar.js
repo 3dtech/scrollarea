@@ -3,11 +3,10 @@ import View from './View.js';
 
 
 export default class ScrollBar {
-    constructor (parentElement, position, horizontal) {
-        this.vertical = typeof horizontal !== 'undefined' ? !horizontal : true;
+    constructor (parentElement, _options) {
+		this.options = _options ? _options : {};
+        this.vertical = this.getOption("direction") == "vertical";
 		this.position = 0;
-		this.containerSize = 1;
-		this.contentSize = 1;
         this.mouseDelta = vec2.create();
 		this.onScroll = false;
 
@@ -15,7 +14,7 @@ export default class ScrollBar {
 		this.parentElement = parentElement;
 		this.element = document.createElement("div");
         this.element.classList.add("sa-scrollbar");
-        this.element.classList.add("sa-scrollbar-position-" + position);
+        this.element.classList.add("sa-scrollbar-position-" + this.getOption("scollbarPosition"));
         this.element.style.position = 'absolute';
         this.element.style.right = '0';
         this.element.style.top = '0';
@@ -27,7 +26,8 @@ export default class ScrollBar {
 		this.element.appendChild(this.bar);
 		parentElement.appendChild(this.element);
 
-        this.attachEvents(this.element);
+		// needs content scrolling
+        //this.attachEvents(this.element);
 		
 		this.view = new View(
             vec2.fromValues(this.bar.clientWidth, this.bar.clientHeight), 
@@ -35,6 +35,9 @@ export default class ScrollBar {
         );
     }
 
+	getOption (name){
+		return this.options[name];
+	}
 
     attachEvents (element) {
         element.addEventListener('mousedown', e => {
@@ -80,7 +83,6 @@ export default class ScrollBar {
         }, false);
 
         window.addEventListener("touchmove", e => {
-            console.log('touchmove', e);
             if (e.touches && e.touches.length > 0) {
                 if (this.lastTouch) {
                     var v = vec2.fromValues(e.touches[0].screenX, e.touches[0].screenY)
@@ -94,16 +96,6 @@ export default class ScrollBar {
                 this.lastTouch = vec2.fromValues(e.touches[0].screenX, e.touches[0].screenY);
             }
         }, false);
-
-        if (typeof ResizeObserver != "undefined" && element) {
-			var scope = this;
-			// creates a continues loop of resizes when not limited to size
-			this.resizeObserver = new ResizeObserver(function () {
-				scope.resize();
-			});
-			    
-			this.resizeObserver.observe(element);
-		}
     }
 
     /** Scrolls child elements immediately by given delta within bounds of the container. Does not update mouse position or mouse delta.
@@ -127,36 +119,6 @@ export default class ScrollBar {
 		}
 		this.bar.style.transform = "translate("+(pos[0]*sign)+"px,"+(pos[1]*sign)+"px)";
 		this.scrolling = false;
-		this.checkContentPosition();
-	}
-
-    checkContentPosition (){
-		var percentage = this.view.getRelativePosition();
-		var classes = [];
-
-		if(percentage[0] === 0){
-			classes.push("on-left");
-		}
-
-		if(percentage[1] === 0){
-			classes.push("on-top");
-		}
-
-		if(percentage[0] === 1){
-			classes.push("on-right");
-		}
-
-		if(percentage[1] === 1){
-			classes.push("on-bottom");
-		}
-
-		if(classes !== this.positionClassNames){
-			this.container.classList.remove(... this.positionClassNames);
-            if (classes && classes.length > 0) {
-			    this.container.classList.add(...classes);
-            }
-			this.positionClassNames = classes;
-		}
 	}
 
     /**
@@ -169,9 +131,9 @@ export default class ScrollBar {
 
 	getBarLength (){
 		if(this.vertical)
-			return parseInt(this.bar.height());
+			return parseInt(this.bar.clientHeight);
 		else
-			return parseInt(this.bar.width());
+			return parseInt(this.bar.clientWidth);
 	}
 
 	getViewLength () {
@@ -192,10 +154,10 @@ export default class ScrollBar {
 	*	Set the bar position depending of the given content position
 	*	@param contentPosition the top/left position of the inner content.
 	*/
-	setContentPosition (contentPosition) {
+	setContentPosition (view) {
 		var newPos = vec2.create();
-		var ratio = this.containerSize/this.contentSize;
-		vec2.scale(newPos, contentPosition, ratio);
+		var ratio = view.getContentViewRatio()[1];
+		vec2.scale(newPos, view.getContentPosition(), ratio);
 		this.view.setViewPosition(newPos);
 		this.setPosition(this.view.getContentPosition());
 	}
@@ -206,25 +168,33 @@ export default class ScrollBar {
 		return distFrom/this.getViewLength();
 	}
 
-    resize () {
-		if(false){ // this.getOption("swapContainers")
-			this.view.setViewSize(parseInt(this.content.clientWidth), parseInt(this.content.clientHeight));
-			this.view.setContentSize(parseInt(this.container.clientWidth), parseInt(this.container.clientHeight));
+	resizeContent (view) {
+		if (view) {
+			if (this.vertical) {
+				this.bar.style.height = Math.floor(view.getViewSize()[1] * (view.getContentViewRatio()[1])) + "px";
+				this.element.style.height = view.getViewSize()[1] + "px";
+			}
+			else {
+				this.bar.style.width = Math.floor(view.getViewSize()[0] * (view.getContentViewRatio()[0])) + "px";
+				this.element.style.width = view.getViewSize()[0] + "px";
+			}
+
+			this.resize();
 		}
 		else {
-			this.view.setViewSize(parseInt(this.element.clientWidth), parseInt(this.bar.clientHeight));
-			this.view.setContentSize(parseInt(this.element.clientWidth), parseInt(this.bar.clientHeight));
+			console.warn("View undefined");
 		}
-		this.checkIfScrollIsNeeded();
 	}
 
-    checkIfScrollIsNeeded (){
-		if(this.view.isContentLonger()){
-			this.element.classList.add("content-longer");
+    resize () {
+		if(this.getOption("swapContainers")){
+			this.view.setViewSize(parseInt(this.bar.clientWidth), parseInt(this.bar.clientHeight));
+			this.view.setContentSize(parseInt(this.element.clientWidth), parseInt(this.element.clientHeight));
 		}
-
-		if(this.view.isContentWider()){
-			this.element.classList.add("content-wider");
+		else {
+			
+			this.view.setViewSize(parseInt(this.element.clientWidth), parseInt(this.element.clientHeight));
+			this.view.setContentSize(parseInt(this.bar.clientWidth), parseInt(this.bar.clientHeight));
 		}
 	}
 };

@@ -455,6 +455,7 @@ class View_View {
         // View and content size
         this.contentSize=contentSize;      ///< Width and height of content
         this.viewSize=viewSize;            ///< Width and height of current view
+        this.contentViewRatio = vec2_default.a.div(vec2_default.a.create(), this.getViewSize(), this.getContentSize()); // Ratio of content and view
         this._maxPosition = vec2_default.a.create(); /// Buffer vector for clampPosition
         this._minPosition = vec2_default.a.create(); /// Buffer vector for clampPosition
 
@@ -468,7 +469,6 @@ class View_View {
 
     /** Gets position of content */
     getContentPosition () {
-
         return this.position;
     }
 
@@ -477,14 +477,13 @@ class View_View {
         vec2_default.a.max(this._maxPosition, this.getViewSize(), this.getContentSize());
         vec2_default.a.min(this._minPosition, this.getViewSize(), this.getContentSize());
         vec2_default.a.sub(this._maxPosition, this._maxPosition, this._minPosition);
-        this.position = this.clamp(this.position, vec2_default.a.create(), this._maxPosition);
+        this.position = this.clamp(this.position, vec2_default.a.create(), this._maxPosition);        
     }
 
     /** Sets current position
         @param position New position */
     setViewPosition (position) {
         if(!isNaN(parseFloat(position[0])) && isFinite(position[0]) && !isNaN(parseFloat(position[1])) && isFinite(position[1])){
-            //console.log('setViewPosition1', position);
             this.position = position;
             this.clampPosition();
         }
@@ -499,21 +498,23 @@ class View_View {
     }
 
     setViewSize (width, height) {
-        this.viewSize = vec2_default.a.fromValues(width, height);
+        vec2_default.a.set(this.viewSize, width, height);
+        vec2_default.a.div(this.contentViewRatio, this.getViewSize(), this.getContentSize());
         this.clampPosition();
     }
 
     setContentSize (width, height) {
-        this.contentSize = vec2_default.a.fromValues(width, height);
+        vec2_default.a.set(this.contentSize, width, height);
+        vec2_default.a.div(this.contentViewRatio, this.getViewSize(), this.getContentSize());
         this.clampPosition();
     }
 
     isContentLonger (){
-        return (this.viewSize[1] <= this.contentSize[1]);
+        return (this.viewSize[1] < this.contentSize[1]);
     }
 
     isContentWider (){
-        return (this.viewSize[0] <= this.contentSize[0]);
+        return (this.viewSize[0] < this.contentSize[0]);
     }
 
     /** Gets size content */
@@ -545,6 +546,10 @@ class View_View {
         
 		return this._vec2cache;
     }
+
+    getContentViewRatio() {
+        return this.contentViewRatio;
+    }
 };
     
 // CONCATENATED MODULE: ./src/ScrollBar.js
@@ -553,11 +558,10 @@ class View_View {
 
 
 class ScrollBar_ScrollBar {
-    constructor (parentElement, position, horizontal) {
-        this.vertical = typeof horizontal !== 'undefined' ? !horizontal : true;
+    constructor (parentElement, _options) {
+		this.options = _options ? _options : {};
+        this.vertical = this.getOption("direction") == "vertical";
 		this.position = 0;
-		this.containerSize = 1;
-		this.contentSize = 1;
         this.mouseDelta = vec2_default.a.create();
 		this.onScroll = false;
 
@@ -565,7 +569,7 @@ class ScrollBar_ScrollBar {
 		this.parentElement = parentElement;
 		this.element = document.createElement("div");
         this.element.classList.add("sa-scrollbar");
-        this.element.classList.add("sa-scrollbar-position-" + position);
+        this.element.classList.add("sa-scrollbar-position-" + this.getOption("scollbarPosition"));
         this.element.style.position = 'absolute';
         this.element.style.right = '0';
         this.element.style.top = '0';
@@ -577,7 +581,8 @@ class ScrollBar_ScrollBar {
 		this.element.appendChild(this.bar);
 		parentElement.appendChild(this.element);
 
-        this.attachEvents(this.element);
+		// needs content scrolling
+        //this.attachEvents(this.element);
 		
 		this.view = new View_View(
             vec2_default.a.fromValues(this.bar.clientWidth, this.bar.clientHeight), 
@@ -585,6 +590,9 @@ class ScrollBar_ScrollBar {
         );
     }
 
+	getOption (name){
+		return this.options[name];
+	}
 
     attachEvents (element) {
         element.addEventListener('mousedown', e => {
@@ -630,7 +638,6 @@ class ScrollBar_ScrollBar {
         }, false);
 
         window.addEventListener("touchmove", e => {
-            console.log('touchmove', e);
             if (e.touches && e.touches.length > 0) {
                 if (this.lastTouch) {
                     var v = vec2_default.a.fromValues(e.touches[0].screenX, e.touches[0].screenY)
@@ -644,16 +651,6 @@ class ScrollBar_ScrollBar {
                 this.lastTouch = vec2_default.a.fromValues(e.touches[0].screenX, e.touches[0].screenY);
             }
         }, false);
-
-        if (typeof ResizeObserver != "undefined" && element) {
-			var scope = this;
-			// creates a continues loop of resizes when not limited to size
-			this.resizeObserver = new ResizeObserver(function () {
-				scope.resize();
-			});
-			    
-			this.resizeObserver.observe(element);
-		}
     }
 
     /** Scrolls child elements immediately by given delta within bounds of the container. Does not update mouse position or mouse delta.
@@ -677,36 +674,6 @@ class ScrollBar_ScrollBar {
 		}
 		this.bar.style.transform = "translate("+(pos[0]*sign)+"px,"+(pos[1]*sign)+"px)";
 		this.scrolling = false;
-		this.checkContentPosition();
-	}
-
-    checkContentPosition (){
-		var percentage = this.view.getRelativePosition();
-		var classes = [];
-
-		if(percentage[0] === 0){
-			classes.push("on-left");
-		}
-
-		if(percentage[1] === 0){
-			classes.push("on-top");
-		}
-
-		if(percentage[0] === 1){
-			classes.push("on-right");
-		}
-
-		if(percentage[1] === 1){
-			classes.push("on-bottom");
-		}
-
-		if(classes !== this.positionClassNames){
-			this.container.classList.remove(... this.positionClassNames);
-            if (classes && classes.length > 0) {
-			    this.container.classList.add(...classes);
-            }
-			this.positionClassNames = classes;
-		}
 	}
 
     /**
@@ -719,9 +686,9 @@ class ScrollBar_ScrollBar {
 
 	getBarLength (){
 		if(this.vertical)
-			return parseInt(this.bar.height());
+			return parseInt(this.bar.clientHeight);
 		else
-			return parseInt(this.bar.width());
+			return parseInt(this.bar.clientWidth);
 	}
 
 	getViewLength () {
@@ -742,10 +709,10 @@ class ScrollBar_ScrollBar {
 	*	Set the bar position depending of the given content position
 	*	@param contentPosition the top/left position of the inner content.
 	*/
-	setContentPosition (contentPosition) {
+	setContentPosition (view) {
 		var newPos = vec2_default.a.create();
-		var ratio = this.containerSize/this.contentSize;
-		vec2_default.a.scale(newPos, contentPosition, ratio);
+		var ratio = view.getContentViewRatio()[1];
+		vec2_default.a.scale(newPos, view.getContentPosition(), ratio);
 		this.view.setViewPosition(newPos);
 		this.setPosition(this.view.getContentPosition());
 	}
@@ -756,22 +723,33 @@ class ScrollBar_ScrollBar {
 		return distFrom/this.getViewLength();
 	}
 
-    resize () {
-		if(false){}
-		else {
-			this.view.setViewSize(parseInt(this.element.clientWidth), parseInt(this.bar.clientHeight));
-			this.view.setContentSize(parseInt(this.element.clientWidth), parseInt(this.bar.clientHeight));
+	resizeContent (view) {
+		if (view) {
+			if (this.vertical) {
+				this.bar.style.height = Math.floor(view.getViewSize()[1] * (view.getContentViewRatio()[1])) + "px";
+				this.element.style.height = view.getViewSize()[1] + "px";
+			}
+			else {
+				this.bar.style.width = Math.floor(view.getViewSize()[0] * (view.getContentViewRatio()[0])) + "px";
+				this.element.style.width = view.getViewSize()[0] + "px";
+			}
+
+			this.resize();
 		}
-		this.checkIfScrollIsNeeded();
+		else {
+			console.warn("View undefined");
+		}
 	}
 
-    checkIfScrollIsNeeded (){
-		if(this.view.isContentLonger()){
-			this.element.classList.add("content-longer");
+    resize () {
+		if(this.getOption("swapContainers")){
+			this.view.setViewSize(parseInt(this.bar.clientWidth), parseInt(this.bar.clientHeight));
+			this.view.setContentSize(parseInt(this.element.clientWidth), parseInt(this.element.clientHeight));
 		}
-
-		if(this.view.isContentWider()){
-			this.element.classList.add("content-wider");
+		else {
+			
+			this.view.setViewSize(parseInt(this.element.clientWidth), parseInt(this.element.clientHeight));
+			this.view.setContentSize(parseInt(this.bar.clientWidth), parseInt(this.bar.clientHeight));
 		}
 	}
 };
@@ -787,16 +765,17 @@ class ScrollArea_ScrollArea {
 
         this.options = {
 			"smooth": true, //set if the end of drag has a fade out animation
-			"reverse": true, //set if content will scroll in reverse direction
-			"swapContainers": true, // set if content is bigger than the container
+			"reverse": false, //set if content will scroll in reverse direction
+			"swapContainers": false, // set if content is bigger than the container
 			"updateInterval": 10, // in how many milliseconds will the animation update itself
-			"wheelSpeed": 50 // how smooth is the mouse wheel scrolling
+			"wheelSpeed": 50, // how smooth is the mouse wheel scrolling
+			"scollbarPosition": "right", //Where to put the scrollbar
+			"direction": "vertical" // vertical or horizontal scrolling
 		};
 
         if(options !== undefined && options){
 			this.options = this.chooseOptions(this.options, options);
 		}
-        console.log('vec2', vec2_default.a, vec2_default.a.create);
 
         this.setContainer(_container);
 
@@ -812,7 +791,7 @@ class ScrollArea_ScrollArea {
         this.smoothDistance = null;
 		this.timeout = null;
         this.smoothCoeficent = vec2_default.a.fromValues(11, 11);
-        this.positionClassNames = [];
+		this.positionClassNames = ["sa-on-left", "sa-on-right", "sa-on-top", "sa-on-bottom"];
         this.mousedown = false;
         this.touchstart = false;
         this._vec2cache = vec2_default.a.create();
@@ -833,13 +812,12 @@ class ScrollArea_ScrollArea {
         
         this.attachEvents(this.container);
         
-        this.scrollbar = new ScrollBar_ScrollBar(this.container, "right");
+        this.scrollbar = new ScrollBar_ScrollBar(this.container, this.options);
 
 		if (typeof ResizeObserver != "undefined" &&  this.content) {
 			var scope = this;
 			// creates a continues loop of resizes when not limited to size
 			this.resizeObserver = new ResizeObserver(function () {
-				console.log('resizeObserver2');
 				scope.resize();
 			});
 			    
@@ -911,7 +889,6 @@ class ScrollArea_ScrollArea {
         }, false);
 
         window.addEventListener("touchmove", e => {
-            console.log('touchmove', e);
             if (e.touches && e.touches.length > 0 && this.mousedown) {
                 if (this.lastTouch) {
                     var v = vec2_default.a.fromValues(e.touches[0].screenX, e.touches[0].screenY)
@@ -980,6 +957,9 @@ class ScrollArea_ScrollArea {
 			this.view.setContentSize(parseInt(this.content.clientWidth), parseInt(this.content.clientHeight));
 		}
 		this.checkIfScrollIsNeeded();
+		if (this.scrollbar) {
+			this.scrollbar.resizeContent(this.view);
+		}
 	}
 
 	/** Reset scroll */
@@ -989,11 +969,11 @@ class ScrollArea_ScrollArea {
 
     checkIfScrollIsNeeded (){
 		if(this.view.isContentLonger()){
-			this.container.classList.add("content-longer");
+			this.container.classList.add("sa-content-longer");
 		}
 
 		if(this.view.isContentWider()){
-			this.container.classList.add("content-wider");
+			this.container.classList.add("sa-content-wider");
 		}
 	}
 
@@ -1013,7 +993,6 @@ class ScrollArea_ScrollArea {
 		switch (typeof container) {
 			case "undefined":
 				this.container = document.createElement("div");
-				this.container.classList.add('keyboard');
 				document.body.appendChild(this.container);
 			break;
 			case "string":
@@ -1066,6 +1045,7 @@ class ScrollArea_ScrollArea {
 			scope.view.move(delta);
 			delta = vec2_default.a.clone(scope.view.getContentPosition());
 			scope.setContentOffset(delta);
+			scope.scrollbar.setContentPosition(scope.view);
 			if(scope.updateCallback && typeof scope.updateCallback === "function"){
 				scope.updateCallback(me);
 			}
@@ -1073,9 +1053,9 @@ class ScrollArea_ScrollArea {
 	}
 
     setContentOffset (pos) {
-		var sign = 1;
+		var sign = -1;
 		if (this.getOption("swapContainers")) {
-			sign = -1;
+			sign = 1;
 		}
 		this.content.style.transform = "translate("+(pos[0]*sign)+"px,"+(pos[1]*sign)+"px)";
 		this.scrolling = false;
@@ -1087,19 +1067,19 @@ class ScrollArea_ScrollArea {
 		var classes = [];
 
 		if(percentage[0] === 0){
-			classes.push("on-left");
+			classes.push("sa-on-left");
 		}
 
 		if(percentage[1] === 0){
-			classes.push("on-top");
+			classes.push("sa-on-top");
 		}
 
-		if(percentage[0] === 1){
-			classes.push("on-right");
+		if(Math.abs(percentage[0]) === 1){
+			classes.push("sa-on-right");
 		}
 
-		if(percentage[1] === 1){
-			classes.push("on-bottom");
+		if(Math.abs(percentage[1]) === 1){
+			classes.push("sa-on-bottom");
 		}
 
 		if(classes !== this.positionClassNames){

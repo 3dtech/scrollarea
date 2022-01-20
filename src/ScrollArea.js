@@ -9,16 +9,17 @@ export default class ScrollArea {
 
         this.options = {
 			"smooth": true, //set if the end of drag has a fade out animation
-			"reverse": true, //set if content will scroll in reverse direction
-			"swapContainers": true, // set if content is bigger than the container
+			"reverse": false, //set if content will scroll in reverse direction
+			"swapContainers": false, // set if content is bigger than the container
 			"updateInterval": 10, // in how many milliseconds will the animation update itself
-			"wheelSpeed": 50 // how smooth is the mouse wheel scrolling
+			"wheelSpeed": 50, // how smooth is the mouse wheel scrolling
+			"scollbarPosition": "right", //Where to put the scrollbar
+			"direction": "vertical" // vertical or horizontal scrolling
 		};
 
         if(options !== undefined && options){
 			this.options = this.chooseOptions(this.options, options);
 		}
-        console.log('vec2', vec2, vec2.create);
 
         this.setContainer(_container);
 
@@ -34,7 +35,7 @@ export default class ScrollArea {
         this.smoothDistance = null;
 		this.timeout = null;
         this.smoothCoeficent = vec2.fromValues(11, 11);
-        this.positionClassNames = [];
+		this.positionClassNames = ["sa-on-left", "sa-on-right", "sa-on-top", "sa-on-bottom"];
         this.mousedown = false;
         this.touchstart = false;
         this._vec2cache = vec2.create();
@@ -55,13 +56,12 @@ export default class ScrollArea {
         
         this.attachEvents(this.container);
         
-        this.scrollbar = new ScrollBar(this.container, "right");
+        this.scrollbar = new ScrollBar(this.container, this.options);
 
 		if (typeof ResizeObserver != "undefined" &&  this.content) {
 			var scope = this;
 			// creates a continues loop of resizes when not limited to size
 			this.resizeObserver = new ResizeObserver(function () {
-				console.log('resizeObserver2');
 				scope.resize();
 			});
 			    
@@ -133,7 +133,6 @@ export default class ScrollArea {
         }, false);
 
         window.addEventListener("touchmove", e => {
-            console.log('touchmove', e);
             if (e.touches && e.touches.length > 0 && this.mousedown) {
                 if (this.lastTouch) {
                     var v = vec2.fromValues(e.touches[0].screenX, e.touches[0].screenY)
@@ -202,6 +201,9 @@ export default class ScrollArea {
 			this.view.setContentSize(parseInt(this.content.clientWidth), parseInt(this.content.clientHeight));
 		}
 		this.checkIfScrollIsNeeded();
+		if (this.scrollbar) {
+			this.scrollbar.resizeContent(this.view);
+		}
 	}
 
 	/** Reset scroll */
@@ -211,11 +213,11 @@ export default class ScrollArea {
 
     checkIfScrollIsNeeded (){
 		if(this.view.isContentLonger()){
-			this.container.classList.add("content-longer");
+			this.container.classList.add("sa-content-longer");
 		}
 
 		if(this.view.isContentWider()){
-			this.container.classList.add("content-wider");
+			this.container.classList.add("sa-content-wider");
 		}
 	}
 
@@ -235,7 +237,6 @@ export default class ScrollArea {
 		switch (typeof container) {
 			case "undefined":
 				this.container = document.createElement("div");
-				this.container.classList.add('keyboard');
 				document.body.appendChild(this.container);
 			break;
 			case "string":
@@ -288,6 +289,7 @@ export default class ScrollArea {
 			scope.view.move(delta);
 			delta = vec2.clone(scope.view.getContentPosition());
 			scope.setContentOffset(delta);
+			scope.scrollbar.setContentPosition(scope.view);
 			if(scope.updateCallback && typeof scope.updateCallback === "function"){
 				scope.updateCallback(me);
 			}
@@ -295,9 +297,9 @@ export default class ScrollArea {
 	}
 
     setContentOffset (pos) {
-		var sign = 1;
+		var sign = -1;
 		if (this.getOption("swapContainers")) {
-			sign = -1;
+			sign = 1;
 		}
 		this.content.style.transform = "translate("+(pos[0]*sign)+"px,"+(pos[1]*sign)+"px)";
 		this.scrolling = false;
@@ -309,19 +311,19 @@ export default class ScrollArea {
 		var classes = [];
 
 		if(percentage[0] === 0){
-			classes.push("on-left");
+			classes.push("sa-on-left");
 		}
 
 		if(percentage[1] === 0){
-			classes.push("on-top");
+			classes.push("sa-on-top");
 		}
 
-		if(percentage[0] === 1){
-			classes.push("on-right");
+		if(Math.abs(percentage[0]) === 1){
+			classes.push("sa-on-right");
 		}
 
-		if(percentage[1] === 1){
-			classes.push("on-bottom");
+		if(Math.abs(percentage[1]) === 1){
+			classes.push("sa-on-bottom");
 		}
 
 		if(classes !== this.positionClassNames){
