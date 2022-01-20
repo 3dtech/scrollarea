@@ -215,9 +215,15 @@ export default class ScrollArea {
 		if(this.view.isContentLonger()){
 			this.container.classList.add("sa-content-longer");
 		}
+		else { 
+			this.container.classList.remove("sa-content-longer");
+		}
 
 		if(this.view.isContentWider()){
 			this.container.classList.add("sa-content-wider");
+		}
+		else {
+			this.container.classList.remove("sa-content-wider");
 		}
 	}
 

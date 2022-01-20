@@ -14,12 +14,12 @@ Make the container fixed height, overflow hidden. And the scrollable container a
 To show a scrollbar add some styles to 
 
 ```css
-.sa-scrollbar {
+.sa-content-longer .sa-scrollbar {
     width: 1em;
     background-color: lightblue;
 }
 
-.sa-bar {
+.sa-content-longer .sa-bar {
     width: 1em;
     background-color: antiquewhite;
 }
