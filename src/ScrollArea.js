@@ -76,10 +76,10 @@ export default class ScrollArea {
 				e = e.originalEvent;
 
 			if ('wheelDelta' in e) {
-				direction = e.wheelDelta < 0 ? 1 : e.wheelDelta > 0 ? -1 : 1;
+				direction = e.wheelDelta < 0 ? 1 : e.wheelDelta > 0 ? 1 : -1;
 			}
 			else {
-				direction = e.deltaY > 0 ? 1 : e.deltaY < 0 ? -1 : 1;
+				direction = e.deltaY > 0 ? 1 : e.deltaY < 0 ? 1 : -1;
 			}
 
 			this.scroll(vec2.fromValues(0, this.getOption("wheelSpeed") * direction));
