@@ -22,6 +22,8 @@
                 </div>
             </div>
         </div>
+        <button onclick="forward(1)">Forward</button>
+        <button onclick="home(1)">Home</button>
     </div>
 
     <div>
@@ -30,8 +32,8 @@
                 LoremipsumdolorsitametconsecteturadipiscingelitDonectristiquerisusloremacpretiumetuselementumat.
             </div>
         </div>
-        <button onclick="forward()">Forward</button>
-        <button onclick="home()">Home</button>
+        <button onclick="forward(0)">Forward</button>
+        <button onclick="home(0)">Home</button>
     </div>
     
     <script src="../dist/scrollarea.js"></script>
@@ -49,16 +51,18 @@
             more.classList.toggle("active");
         }
 
-        function forward() {
-           if (scrollarea) {
-            scrollarea2.scrollToSection(1, 0, 1);
-           }
+        function forward(i) {
+            var scroll = i == 1 ? scrollarea : scrollarea2;
+            if (scroll) {
+                scroll.scrollToSection(1, i, false);
+            }
         }
 
-        function home() {
-           if (scrollarea) {
-            scrollarea2.scrollToSection(0, 0, 1);
-           }
+        function home(i) {
+            var scroll = i == 1 ? scrollarea : scrollarea2;
+            if (scroll) {
+             scroll.scrollToSection(0, i, false);
+            }
         }
 
     </script>

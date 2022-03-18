@@ -74,6 +74,8 @@ export default class ScrollArea {
 			    
 			this.resizeObserver.observe(this.content);
 		}
+
+		this.checkContentPosition();
 	}
 
     attachEvents (element) {
@@ -401,7 +403,7 @@ export default class ScrollArea {
 	}
 
 	scrollToSection (index, direction, animate, _animSpeed) {
-		let sectionSize = vec2.mul(vec2.create(), this.view.getViewSize(), this.view.getContentViewRatio());
+		let sectionSize = vec2.mul(vec2.create(), this.view.getContentSize(), this.view.getContentViewRatio());
 		let destination = vec2.scale(vec2.create(), sectionSize, index);
 		const animSpeed = _animSpeed ? _animSpeed : 1;
 		if (direction == 0) {
