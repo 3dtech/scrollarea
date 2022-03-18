@@ -33,7 +33,17 @@ export default class View {
         vec2.max(this._maxPosition, this.getViewSize(), this.getContentSize());
         vec2.min(this._minPosition, this.getViewSize(), this.getContentSize());
         vec2.sub(this._maxPosition, this._maxPosition, this._minPosition);
-        this.position = this.clamp(this.position, vec2.create(), this._maxPosition);        
+       
+        // Dont let shorter content to scroll
+        if (this.getContentSize()[0] <= this.getViewSize()[0]) {
+            this._maxPosition[0] = 0;
+        }
+
+        if (this.getContentSize()[1] <= this.getViewSize()[1]) {
+            this._maxPosition[1] = 0;
+        }
+        
+        this.position = this.clamp(this.position, vec2.create(), this._maxPosition);
     }
 
     /** Sets current position
@@ -103,7 +113,7 @@ export default class View {
 		return this._vec2cache;
     }
 
-    getContentViewRatio() {
+    getContentViewRatio () {
         return this.contentViewRatio;
     }
 };

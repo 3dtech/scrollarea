@@ -17,8 +17,14 @@ export default class ScrollBar {
         this.element.classList.add("sa-scrollbar-position-" + this.getOption("scollbarPosition"));
         this.element.style.position = 'absolute';
         this.element.style.right = '0';
-        this.element.style.top = '0';
         this.element.style.bottom = '0';
+
+		if (this.vertical) {
+			this.element.style.top = '0';
+		}
+		else {
+			this.element.style.left = '0';
+		}
 
         this.bar = document.createElement("div");
         this.bar.style.minWidth = '1px';
@@ -30,8 +36,8 @@ export default class ScrollBar {
         //this.attachEvents(this.element);
 		
 		this.view = new View(
-            vec2.fromValues(this.bar.clientWidth, this.bar.clientHeight), 
- 			vec2.fromValues(this.element.clientWidth, this.element.clientHeight)
+ 			vec2.fromValues(this.element.clientWidth, this.element.clientHeight),
+			vec2.fromValues(this.bar.clientWidth, this.bar.clientHeight)
         );
     }
 
@@ -131,9 +137,9 @@ export default class ScrollBar {
 
 	getBarLength (){
 		if(this.vertical)
-			return parseInt(this.bar.clientHeight);
+			return parseInt(Math.ceil(this.bar.clientHeight));
 		else
-			return parseInt(this.bar.clientWidth);
+			return parseInt(Math.ceil(this.bar.clientWidth));
 	}
 
 	getViewLength () {
@@ -156,7 +162,8 @@ export default class ScrollBar {
 	*/
 	setContentPosition (view) {
 		var newPos = vec2.create();
-		var ratio = view.getContentViewRatio()[1];
+		var ratio = view.getContentViewRatio()[ this.vertical ? 1 : 0];
+		
 		vec2.scale(newPos, view.getContentPosition(), ratio);
 		this.view.setViewPosition(newPos);
 		this.setPosition(this.view.getContentPosition());
@@ -173,10 +180,14 @@ export default class ScrollBar {
 			if (this.vertical) {
 				this.bar.style.height = Math.floor(view.getViewSize()[1] * (view.getContentViewRatio()[1])) + "px";
 				this.element.style.height = view.getViewSize()[1] + "px";
+				this.element.style.visibility = view.isContentLonger() ? 'visible' : 'hidden';
+	
 			}
 			else {
 				this.bar.style.width = Math.floor(view.getViewSize()[0] * (view.getContentViewRatio()[0])) + "px";
 				this.element.style.width = view.getViewSize()[0] + "px";
+				this.element.style.visibility = view.isContentWider() ? 'visible' : 'hidden';
+
 			}
 
 			this.resize();
@@ -188,13 +199,13 @@ export default class ScrollBar {
 
     resize () {
 		if(this.getOption("swapContainers")){
-			this.view.setViewSize(parseInt(this.bar.clientWidth), parseInt(this.bar.clientHeight));
-			this.view.setContentSize(parseInt(this.element.clientWidth), parseInt(this.element.clientHeight));
-		}
-		else {
-			
 			this.view.setViewSize(parseInt(this.element.clientWidth), parseInt(this.element.clientHeight));
 			this.view.setContentSize(parseInt(this.bar.clientWidth), parseInt(this.bar.clientHeight));
+		}
+		else {
+			this.view.setViewSize(parseInt(this.bar.clientWidth), parseInt(this.bar.clientHeight));
+			this.view.setContentSize(parseInt(this.element.clientWidth), parseInt(this.element.clientHeight));
+
 		}
 	}
 };

@@ -1,4 +1,4 @@
-import vec2 from "./libs/vec2.js"
+import vec2, { dist } from "./libs/vec2.js"
 import View from './View.js';
 import ScrollBar from './ScrollBar.js';
 
@@ -51,12 +51,19 @@ export default class ScrollArea {
 
         this.container.style.position = 'relative';
         this.container.style.overflow = 'hidden';
-        this.container.style.overflow = 'hidden';
         this.container.style.userSelect = 'none';
         
         this.attachEvents(this.container);
         
-        this.scrollbar = new ScrollBar(this.container, this.options);
+        this.scrollbarV = new ScrollBar(this.container, {
+			"direction": "vertical", 
+			"scollbarPosition": "right", 
+			"reverse": this.options["reverse"], 
+			"swapContainers": this.options["swapContainers"]});
+		this.scrollbarH = new ScrollBar(this.container, {
+			"direction": "horizontal", 
+			"scollbarPosition": "bottom", 
+			"reverse": this.options["reverse"]});
 
 		if (typeof ResizeObserver != "undefined" &&  this.content) {
 			var scope = this;
@@ -88,6 +95,7 @@ export default class ScrollArea {
         element.addEventListener('mousedown', e => {
             //console.log('mousedown');
             this.mousedown = true;
+			this.lastTime = Date.now();
             e.stopPropagation();
             e.preventDefault();	
         });
@@ -108,7 +116,7 @@ export default class ScrollArea {
           
         window.addEventListener('mouseup', e => {
             // console.log('mouseup', e);
-            // this.onEndDrag(this.deltaMove, Date.now() - this.lastTime);
+            this.onEndDrag(this.deltaMove, Date.now() - this.lastTime);
             this.mousedown = false;
         });
 
@@ -117,17 +125,20 @@ export default class ScrollArea {
             if (e.touches && e.touches.length > 0) {
 				this.mousedown = true;
                 this.lastTouch = vec2.fromValues(e.touches[0].screenX, e.touches[0].screenY);
+				this.lastTime = Date.now();
             }
         }, false);
 
         window.addEventListener("touchend", e => {
             // console.log('touchend', e);
-            //this.onEndDrag()
+            this.onEndDrag(vec2.negate(this.deltaMove, this.deltaMove), Date.now() - this.lastTime);
             this.lastTouch = null;
 			this.mousedown = false;
+			
         }, false);
 
         window.addEventListener("touchcancel", e => {
+			this.onEndDrag(vec2.negate(this.deltaMove, this.deltaMove), Date.now() - this.lastTime);
             this.lastTouch = null;
 			this.mousedown = false;
         }, false);
@@ -144,6 +155,7 @@ export default class ScrollArea {
                     }
                 }
                 this.lastTouch = vec2.fromValues(e.touches[0].screenX, e.touches[0].screenY);
+				this.lastTime = Date.now();
             }
         }, false);
 
@@ -156,53 +168,62 @@ export default class ScrollArea {
         @param deltaTime
     */
 	onEndDrag(deltaMove, deltaTime) {
-        var velocity = vec2.div(0, Math.abs(event.velocity)); // speed of travelled distance
+		if (deltaTime <= 0) return;
+		var dragLength = vec2.len(deltaMove);
+        var velocity = dragLength / deltaTime; // speed of travelled distance
         //if smooth scolling is enabled and drag speed is high enough
-        if(this.getOption("smooth") && sqrLen(velocity) > 0.3){
-            var dragLength = fromValues(event.deltaX, event.deltaY);	//drag distance
+        if(this.getOption("smooth") && velocity > 0.3){
+            	//drag distance
             var smoothDistance = vec2.create();
-            vec2.multiply(smoothDistance, dragLength, velocity);
+            vec2.scale(smoothDistance, deltaMove, velocity);
             if (!this.getOption("reverse")) {
                 //negate(smoothDistance, smoothDistance);
             }
             // console.log(event)
-            var me=this;
+            var me = this;
             this.stop(); //Stop previous scrolling
             var i = 0;
-            var distance = create();
+            var distance = vec2.create();
             var smoothScrollTimer = function() {
-                div(distance, smoothDistance, me.smoothCoeficent);
-                if(sqrLen(distance) > 3) {
-                    sub(smoothDistance, smoothDistance, distance);
-                    requestAnimFrame(smoothScrollTimer, me.getOption("updateInterval"));
-                    negate(distance, distance);
-                    
+                vec2.div(distance, smoothDistance, me.smoothCoeficent);
+                if(vec2.sqrLen(distance) > 3) {
+                    vec2.sub(smoothDistance, smoothDistance, distance);
+                    window.requestAnimationFrame(smoothScrollTimer);
+                    //vec2.negate(distance, distance);
                     me.scroll(distance);
                 }
                 else {
                     me.scrolling = false;
                 }
             };
-            this.timeout=requestAnimFrame(smoothScrollTimer, me.updateInterval);	// Start smooth scrolling
+            this.timeout = window.requestAnimationFrame(smoothScrollTimer);	// Start smooth scrolling
         }
         else {
             this.scrolling = false;
-			}
+		}
+	}
+
+	stop () {
+		this.scrolling = false;
 	}
 
     /** Call when resizing the view or child element */
 	resize () {
 		if(this.getOption("swapContainers")){
-			this.view.setViewSize(parseInt(this.content.clientWidth), parseInt(this.content.clientHeight));
-			this.view.setContentSize(parseInt(this.container.clientWidth), parseInt(this.container.clientHeight));
+			this.view.setViewSize(parseInt(Math.ceil(this.content.clientWidth)), parseInt(Math.ceil(this.content.clientHeight)));
+			this.view.setContentSize(parseInt(this.container.clientWidth), parseInt(Math.ceilthis.container.clientHeight));
 		}
 		else {
 			this.view.setViewSize(parseInt(this.container.clientWidth), parseInt(this.container.clientHeight));
-			this.view.setContentSize(parseInt(this.content.clientWidth), parseInt(this.content.clientHeight));
+			this.view.setContentSize(parseInt(Math.ceil(this.content.clientWidth)), parseInt(Math.ceil(this.content.clientHeight)));
 		}
 		this.checkIfScrollIsNeeded();
-		if (this.scrollbar) {
-			this.scrollbar.resizeContent(this.view);
+		if (this.scrollbarV) {
+			this.scrollbarV.resizeContent(this.view);
+		}
+
+		if (this.scrollbarH) {
+			this.scrollbarH.resizeContent(this.view);
 		}
 	}
 
@@ -295,11 +316,49 @@ export default class ScrollArea {
 			scope.view.move(delta);
 			delta = vec2.clone(scope.view.getContentPosition());
 			scope.setContentOffset(delta);
-			scope.scrollbar.setContentPosition(scope.view);
+			scope.scrollbarV.setContentPosition(scope.view);
+			scope.scrollbarH.setContentPosition(scope.view);
 			if(scope.updateCallback && typeof scope.updateCallback === "function"){
 				scope.updateCallback(me);
 			}
 		});
+	}
+
+	/** 
+        animate touchend
+        @param deltaMove vector
+        @param deltaTime
+    */
+	smoothScroll(delta, time) {
+		if (time <= 0) return;
+		var distance = vec2.create();
+		var remaining = vec2.clone(delta);
+		var timePassed = time;
+		var start = Date.now();
+		var deltaTime = 0;
+		var scope = this;
+
+		var smoothScrollTimer = function() {		
+			timePassed = Date.now() - start;
+			deltaTime = 1 - Math.pow(1 - Math.min(1, timePassed / time), 3);
+			vec2.scale(distance, remaining, deltaTime);
+			vec2.sub(remaining, remaining, distance);
+			if(timePassed < time) {
+				window.requestAnimationFrame(smoothScrollTimer);
+				if (vec2.len(remaining) > 0)
+					scope.scroll(distance);
+				else {
+					scope.scroll(vec2.sub(distance, distance, remaining));
+				}
+			}
+			else {
+				if (vec2.len(remaining) > 0) {
+					scope.scroll(remaining);
+				}
+				scope.scrolling = false;
+			}
+		};
+		this.timeout = window.requestAnimationFrame(smoothScrollTimer);	// Start smooth scrolling
 	}
 
     setContentOffset (pos) {
@@ -338,6 +397,27 @@ export default class ScrollArea {
 			    this.container.classList.add(...classes);
             }
 			this.positionClassNames = classes;
+		}
+	}
+
+	scrollToSection (index, direction, animate, _animSpeed) {
+		let sectionSize = vec2.mul(vec2.create(), this.view.getViewSize(), this.view.getContentViewRatio());
+		let destination = vec2.scale(vec2.create(), sectionSize, index);
+		const animSpeed = _animSpeed ? _animSpeed : 1;
+		if (direction == 0) {
+			destination[1] = 0;
+		}
+		else {
+			destination[0] = 0;
+		}
+		
+		let delta = vec2.sub(vec2.create(), this.view.getContentPosition(), destination);
+		if (animate) {
+			let time = vec2.len(delta) * animSpeed;
+			this.smoothScroll(delta, time)
+		}
+		else {
+			this.scroll(delta);
 		}
 	}
 
