@@ -809,6 +809,7 @@ class ScrollArea_ScrollArea {
         this.lastTouch = null;
         this.deltaMove = vec2_default.a.create();
         this.lastTime = 0;
+		this.deltaTime = 0;
         this.smoothDistance = null;
 		this.timeout = null;
         this.smoothCoeficent = vec2_default.a.fromValues(11, 11);
@@ -854,6 +855,17 @@ class ScrollArea_ScrollArea {
 
 		this.checkContentPosition();
 	}
+	/**
+	 * Calculate average time, distance that mouse moved
+	 * @param {vec2} movement 
+	 */
+	calcVelocity(movement) {
+		if(this.lastTime) {
+			this.deltaTime = (this.deltaTime + (Date.now() - this.lastTime))/2;
+		}
+		vec2_default.a.scale(this.deltaMove, vec2_default.a.add(this.deltaMove, this.deltaMove, movement), 0.5);
+		this.lastTime = Date.now();
+	}
 
     attachEvents (element) {
         element.addEventListener("mousewheel", e => {
@@ -873,6 +885,7 @@ class ScrollArea_ScrollArea {
         element.addEventListener('mousedown', e => {
             //console.log('mousedown');
             this.mousedown = true;
+			this.deltaMove = vec2_default.a.create(); // reset last
 			this.lastTime = Date.now();
             e.stopPropagation();
             e.preventDefault();	
@@ -881,8 +894,7 @@ class ScrollArea_ScrollArea {
         window.addEventListener('mousemove', e => {
             if (this.mousedown) {
                 var v = vec2_default.a.fromValues(e.movementX, e.movementY);
-                this.deltaMove = v;
-                this.lastTime = Date.now();
+				this.calcVelocity(v);
                 if(this.getOption("reverse")){
                     this.scroll(v);
                 }
@@ -894,7 +906,7 @@ class ScrollArea_ScrollArea {
           
         window.addEventListener('mouseup', e => {
             // console.log('mouseup', e);
-            this.onEndDrag(this.deltaMove, Date.now() - this.lastTime);
+            this.onEndDrag(this.deltaMove, this.deltaTime);
             this.mousedown = false;
         });
 
