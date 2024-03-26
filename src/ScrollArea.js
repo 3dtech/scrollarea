@@ -66,14 +66,14 @@ export default class ScrollArea {
 			"scollbarPosition": "bottom", 
 			"reverse": this.options["reverse"]});
 
-		if (typeof ResizeObserver != "undefined" &&  this.content) {
+		if (typeof ResizeObserver != "undefined" &&  this.container) {
 			var scope = this;
 			// creates a continues loop of resizes when not limited to size
 			this.resizeObserver = new ResizeObserver(function () {
 				scope.resize();
 			});
 			    
-			this.resizeObserver.observe(this.content);
+			this.resizeObserver.observe(this.container);
 		}
 
 		this.checkContentPosition();
