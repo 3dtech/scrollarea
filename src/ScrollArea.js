@@ -68,12 +68,15 @@ export default class ScrollArea {
 
 		if (typeof ResizeObserver != "undefined" &&  this.container) {
 			var scope = this;
+			console.log('resizeObserv.0')
 			// creates a continues loop of resizes when not limited to size
 			this.resizeObserver = new ResizeObserver(function () {
+				console.log('resizeObserv')
 				scope.resize();
 			});
 			    
 			this.resizeObserver.observe(this.container);
+			this.resizeObserver.observe(this.content);
 		}
 
 		this.checkContentPosition();
@@ -110,8 +113,6 @@ export default class ScrollArea {
             this.mousedown = true;
 			this.deltaMove = vec2.create(); // reset last
 			this.lastTime = Date.now();
-            e.stopPropagation();
-            e.preventDefault();	
         });
           
         window.addEventListener('mousemove', e => {
@@ -131,6 +132,8 @@ export default class ScrollArea {
             // console.log('mouseup', e);
             this.onEndDrag(this.deltaMove, this.deltaTime);
             this.mousedown = false;
+			e.stopPropagation();
+            e.preventDefault();	
         });
 
         element.addEventListener("touchstart", e => {
@@ -139,6 +142,9 @@ export default class ScrollArea {
 				this.mousedown = true;
                 this.lastTouch = vec2.fromValues(e.touches[0].screenX, e.touches[0].screenY);
 				this.lastTime = Date.now();
+
+				e.stopPropagation();
+            	e.preventDefault();	
             }
         }, false);
 
@@ -147,6 +153,9 @@ export default class ScrollArea {
             this.onEndDrag(vec2.negate(this.deltaMove, this.deltaMove), Date.now() - this.lastTime);
             this.lastTouch = null;
 			this.mousedown = false;
+
+			e.stopPropagation();
+            e.preventDefault();	
 			
         }, false);
 
@@ -154,6 +163,9 @@ export default class ScrollArea {
 			this.onEndDrag(vec2.negate(this.deltaMove, this.deltaMove), Date.now() - this.lastTime);
             this.lastTouch = null;
 			this.mousedown = false;
+
+			e.stopPropagation();
+            e.preventDefault();	
         }, false);
 
         window.addEventListener("touchmove", e => {
