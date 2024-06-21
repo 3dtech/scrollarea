@@ -68,9 +68,13 @@ export default class ScrollArea {
 
 		if (typeof ResizeObserver != "undefined" &&  this.container) {
 			var scope = this;
+			var resizeTimeout = 0;
 			// creates a continues loop of resizes when not limited to size
 			this.resizeObserver = new ResizeObserver(function () {
-				scope.resize();
+				if(resizeTimeout) clearTimeout(resizeTimeout);
+				resizeTimeout = setTimeout(function () {
+					scope.resize();
+				}, 300);
 			});
 			    
 			this.resizeObserver.observe(this.container);
