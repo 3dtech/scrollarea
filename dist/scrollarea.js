@@ -911,8 +911,8 @@ class ScrollArea_ScrollArea {
             // console.log('mouseup', e);
             this.onEndDrag(this.deltaMove, this.deltaTime);
             this.mousedown = false;
-			e.stopPropagation();
-            e.preventDefault();	
+			//e.stopPropagation();
+            //e.preventDefault();	
         });
 
         element.addEventListener("touchstart", e => {
@@ -933,8 +933,8 @@ class ScrollArea_ScrollArea {
             this.lastTouch = null;
 			this.mousedown = false;
 
-			e.stopPropagation();
-            e.preventDefault();	
+			//e.stopPropagation();
+            //e.preventDefault();	
 			
         }, false);
 
@@ -943,8 +943,8 @@ class ScrollArea_ScrollArea {
             this.lastTouch = null;
 			this.mousedown = false;
 
-			e.stopPropagation();
-            e.preventDefault();	
+			//e.stopPropagation();
+            //e.preventDefault();	
         }, false);
 
         window.addEventListener("touchmove", e => {
