@@ -145,8 +145,8 @@ export default class ScrollArea {
                 this.lastTouch = vec2.fromValues(e.touches[0].screenX, e.touches[0].screenY);
 				this.lastTime = Date.now();
 
-				e.stopPropagation();
-            	e.preventDefault();	
+				//e.stopPropagation();
+            	//e.preventDefault();	
             }
         }, false);
 

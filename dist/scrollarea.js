@@ -922,8 +922,8 @@ class ScrollArea_ScrollArea {
                 this.lastTouch = vec2_default.a.fromValues(e.touches[0].screenX, e.touches[0].screenY);
 				this.lastTime = Date.now();
 
-				e.stopPropagation();
-            	e.preventDefault();	
+				//e.stopPropagation();
+            	//e.preventDefault();	
             }
         }, false);
 
