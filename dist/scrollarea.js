@@ -491,7 +491,8 @@ class View_View {
     }
 
     /** Sets current position
-        @param position New position */
+        @param position New position
+     */
     setViewPosition (position) {
         if(!isNaN(parseFloat(position[0])) && isFinite(position[0]) && !isNaN(parseFloat(position[1])) && isFinite(position[1])){
             this.position = position;
@@ -599,6 +600,13 @@ class ScrollBar_ScrollBar {
 
 		// needs content scrolling
         //this.attachEvents(this.element);
+
+		this.element.addEventListener('click', e => {
+			var rect = this.element.getBoundingClientRect();
+			this.clickToPosition(e.clientX - rect.left, e.clientY - rect.top);
+            e.stopPropagation();
+            e.preventDefault();	
+        });
 		
 		this.view = new View_View(
  			vec2_default.a.fromValues(this.element.clientWidth, this.element.clientHeight),
@@ -681,6 +689,13 @@ class ScrollBar_ScrollBar {
 				scope.updateCallback(me);
 			}
 		});
+	}
+
+	clickToPosition (x, y) {
+		var _x = this.view.getViewSize()[0] * (x / this.element.clientWidth);
+		var _y = this.view.getViewSize()[1] * (y / this.element.clientHeight);
+		//console.log('click3', this.view.getViewSize(), _x, _y);
+		this.view.setViewPosition([_x, _y]);
 	}
 
     setPosition (pos) {
@@ -808,6 +823,8 @@ class ScrollArea_ScrollArea {
 
         this.lastTouch = null;
         this.deltaMove = vec2_default.a.create();
+		this.lastMouse = vec2_default.a.create();
+		this.mouseCache = vec2_default.a.create();
         this.lastTime = 0;
 		this.deltaTime = 0;
         this.smoothDistance = null;
@@ -888,21 +905,26 @@ class ScrollArea_ScrollArea {
 		});
 
         element.addEventListener('mousedown', e => {
-            //console.log('mousedown');
             this.mousedown = true;
-			this.deltaMove = vec2_default.a.create(); // reset last
+			vec2_default.a.set(this.lastMouse, e.clientX, e.clientY);
+			vec2_default.a.set(this.deltaMove, 0, 0);
 			this.lastTime = Date.now();
         });
           
         window.addEventListener('mousemove', e => {
             if (this.mousedown) {
-                var v = vec2_default.a.fromValues(e.movementX, e.movementY);
-				this.calcVelocity(v);
+				vec2_default.a.sub(this.mouseCache, vec2_default.a.fromValues(e.clientX, e.clientY), this.lastMouse)
+				//this.mouseCache = vec2.fromValues(e.movementX, e.movementY)
+				vec2_default.a.set(this.lastMouse, e.clientX, e.clientY);
+
+				//console.log('e6', this.mouseCache)
+
+				this.calcVelocity(this.mouseCache);
                 if(this.getOption("reverse")){
-                    this.scroll(v);
+                    this.scroll(this.mouseCache);
                 }
                 else{
-                    this.scroll(v);
+                    this.scroll(this.mouseCache);
                 }
             }
         });

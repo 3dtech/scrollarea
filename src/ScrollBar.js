@@ -34,6 +34,13 @@ export default class ScrollBar {
 
 		// needs content scrolling
         //this.attachEvents(this.element);
+
+		this.element.addEventListener('click', e => {
+			var rect = this.element.getBoundingClientRect();
+			this.clickToPosition(e.clientX - rect.left, e.clientY - rect.top);
+            e.stopPropagation();
+            e.preventDefault();	
+        });
 		
 		this.view = new View(
  			vec2.fromValues(this.element.clientWidth, this.element.clientHeight),
@@ -116,6 +123,13 @@ export default class ScrollBar {
 				scope.updateCallback(me);
 			}
 		});
+	}
+
+	clickToPosition (x, y) {
+		var _x = this.view.getViewSize()[0] * (x / this.element.clientWidth);
+		var _y = this.view.getViewSize()[1] * (y / this.element.clientHeight);
+		//console.log('click3', this.view.getViewSize(), _x, _y);
+		this.view.setViewPosition([_x, _y]);
 	}
 
     setPosition (pos) {

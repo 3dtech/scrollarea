@@ -31,6 +31,8 @@ export default class ScrollArea {
 
         this.lastTouch = null;
         this.deltaMove = vec2.create();
+		this.lastMouse = vec2.create();
+		this.mouseCache = vec2.create();
         this.lastTime = 0;
 		this.deltaTime = 0;
         this.smoothDistance = null;
@@ -111,21 +113,26 @@ export default class ScrollArea {
 		});
 
         element.addEventListener('mousedown', e => {
-            //console.log('mousedown');
             this.mousedown = true;
-			this.deltaMove = vec2.create(); // reset last
+			vec2.set(this.lastMouse, e.clientX, e.clientY);
+			vec2.set(this.deltaMove, 0, 0);
 			this.lastTime = Date.now();
         });
           
         window.addEventListener('mousemove', e => {
             if (this.mousedown) {
-                var v = vec2.fromValues(e.movementX, e.movementY);
-				this.calcVelocity(v);
+				vec2.sub(this.mouseCache, vec2.fromValues(e.clientX, e.clientY), this.lastMouse)
+				//this.mouseCache = vec2.fromValues(e.movementX, e.movementY)
+				vec2.set(this.lastMouse, e.clientX, e.clientY);
+
+				//console.log('e6', this.mouseCache)
+
+				this.calcVelocity(this.mouseCache);
                 if(this.getOption("reverse")){
-                    this.scroll(v);
+                    this.scroll(this.mouseCache);
                 }
                 else{
-                    this.scroll(v);
+                    this.scroll(this.mouseCache);
                 }
             }
         });

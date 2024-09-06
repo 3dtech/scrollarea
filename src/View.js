@@ -47,7 +47,8 @@ export default class View {
     }
 
     /** Sets current position
-        @param position New position */
+        @param position New position
+     */
     setViewPosition (position) {
         if(!isNaN(parseFloat(position[0])) && isFinite(position[0]) && !isNaN(parseFloat(position[1])) && isFinite(position[1])){
             this.position = position;
