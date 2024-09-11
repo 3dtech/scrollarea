@@ -486,7 +486,7 @@ class View_View {
         if (this.getContentSize()[1] <= this.getViewSize()[1]) {
             this._maxPosition[1] = 0;
         }
-        
+        console.log('clamp', this.position, this._maxPosition, this.getViewSize(), this.getContentSize())
         this.position = this.clamp(this.position, vec2_default.a.create(), this._maxPosition);
     }
 
@@ -496,7 +496,9 @@ class View_View {
     setViewPosition (position) {
         if(!isNaN(parseFloat(position[0])) && isFinite(position[0]) && !isNaN(parseFloat(position[1])) && isFinite(position[1])){
             this.position = position;
+            console.log('mouseCache4.0', position)
             this.clampPosition();
+            console.log('mouseCache4.1', this.position[0], this.position[1])
         }
     }
 
@@ -504,6 +506,7 @@ class View_View {
         @param delta Vector instance */
     move (delta) {
         if (delta) {
+            console.log('move', delta, this.getViewPosition())
             this.setViewPosition(vec2_default.a.sub(delta, this.getViewPosition(), delta));
         }
     }
@@ -695,7 +698,7 @@ class ScrollBar_ScrollBar {
 		var _x = this.view.getViewSize()[0] * (x / this.element.clientWidth);
 		var _y = this.view.getViewSize()[1] * (y / this.element.clientHeight);
 		//console.log('click3', this.view.getViewSize(), _x, _y);
-		this.view.setViewPosition([_x, _y]);
+		//this.view.setViewPosition([_x, _y]);
 	}
 
     setPosition (pos) {
@@ -798,6 +801,7 @@ class ScrollArea_ScrollArea {
 	constructor (_container, contentElement, options) {
         this.container = null; // Parent element
         this.content = null; // Scrolled element
+		this.logContainer = null;
 
         this.options = {
 			"smooth": true, //set if the end of drag has a fade out animation
@@ -847,6 +851,7 @@ class ScrollArea_ScrollArea {
         this.container.style.position = 'relative';
         this.container.style.overflow = 'hidden';
         this.container.style.userSelect = 'none';
+		this.container.style["webkitUserSelect"] = 'none';
         
         this.attachEvents(this.container);
         
@@ -906,31 +911,27 @@ class ScrollArea_ScrollArea {
 
         element.addEventListener('mousedown', e => {
             this.mousedown = true;
-			vec2_default.a.set(this.lastMouse, e.clientX, e.clientY);
+			vec2_default.a.set(this.lastMouse, e.screenX, e.screenY);
 			vec2_default.a.set(this.deltaMove, 0, 0);
 			this.lastTime = Date.now();
         });
           
         window.addEventListener('mousemove', e => {
             if (this.mousedown) {
-				vec2_default.a.sub(this.mouseCache, vec2_default.a.fromValues(e.clientX, e.clientY), this.lastMouse)
-				//this.mouseCache = vec2.fromValues(e.movementX, e.movementY)
-				vec2_default.a.set(this.lastMouse, e.clientX, e.clientY);
-
-				//console.log('e6', this.mouseCache)
+				vec2_default.a.sub(this.mouseCache, vec2_default.a.fromValues(e.screenX, e.screenY), this.lastMouse)
+				vec2_default.a.set(this.lastMouse, e.screenX, e.screenY);
 
 				this.calcVelocity(this.mouseCache);
                 if(this.getOption("reverse")){
-                    this.scroll(this.mouseCache);
+                    this.scroll(this.mouseCache.slice());
                 }
                 else{
-                    this.scroll(this.mouseCache);
+                    this.scroll(this.mouseCache.slice());
                 }
             }
         });
           
         window.addEventListener('mouseup', e => {
-            // console.log('mouseup', e);
             this.onEndDrag(this.deltaMove, this.deltaTime);
             this.mousedown = false;
 			//e.stopPropagation();
@@ -938,19 +939,16 @@ class ScrollArea_ScrollArea {
         });
 
         element.addEventListener("touchstart", e => {
-           // console.log('touchstart', e);
             if (e.touches && e.touches.length > 0) {
 				this.mousedown = true;
                 this.lastTouch = vec2_default.a.fromValues(e.touches[0].screenX, e.touches[0].screenY);
 				this.lastTime = Date.now();
-
 				//e.stopPropagation();
             	//e.preventDefault();	
             }
         }, false);
 
         window.addEventListener("touchend", e => {
-            // console.log('touchend', e);
             this.onEndDrag(vec2_default.a.negate(this.deltaMove, this.deltaMove), Date.now() - this.lastTime);
             this.lastTouch = null;
 			this.mousedown = false;
@@ -1136,19 +1134,23 @@ class ScrollArea_ScrollArea {
 	}
 
     /** Scrolls child elements immediately by given delta within bounds of the container. Does not update mouse position or mouse delta.
-		@param delta Vector containing the scroll delta */
+		@param delta Vector containing the scroll delta 
+	*/
 	scroll (delta) {
 		var scope = this;
-		window.requestAnimationFrame(function() {
-			scope.view.move(delta);
-			delta = vec2_default.a.clone(scope.view.getContentPosition());
-			scope.setContentOffset(delta);
-			scope.scrollbarV.setContentPosition(scope.view);
-			scope.scrollbarH.setContentPosition(scope.view);
-			if(scope.updateCallback && typeof scope.updateCallback === "function"){
-				scope.updateCallback(me);
-			}
-		});
+		if (Math.abs(vec2_default.a.len(delta)) > 0) {
+			window.requestAnimationFrame(function() {
+				scope.view.move(delta);
+				var _delta = vec2_default.a.clone(scope.view.getContentPosition());
+				scope.setContentOffset(_delta);
+				scope.scrollbarV.setContentPosition(scope.view);
+				scope.scrollbarH.setContentPosition(scope.view);
+				if(scope.updateCallback && typeof scope.updateCallback === "function"){
+					scope.updateCallback(me);
+				}
+
+			});
+		}
 	}
 
 	/** 
@@ -1193,6 +1195,7 @@ class ScrollArea_ScrollArea {
 		if (this.getOption("swapContainers")) {
 			sign = 1;
 		}
+		//console.log('setContentOffset', this.container.id, pos, sign)
 		this.content.style.transform = "translate("+(pos[0]*sign)+"px,"+(pos[1]*sign)+"px)";
 		this.scrolling = false;
 		this.checkContentPosition();
@@ -1244,8 +1247,25 @@ class ScrollArea_ScrollArea {
 			this.smoothScroll(delta, time)
 		}
 		else {
-			this.scroll(delta);
+			this.scroll(delta, delta);
 		}
+	}
+
+	log(message) {
+		if(this.logContainer) {
+			let el = document.createElement("p");
+			let msg = document.createTextNode(message);
+			el.appendChild(msg);
+			this.logContainer.appendChild(el)
+
+			if (this.logContainer.children.length > 10) {
+				this.logContainer.removeChild(this.logContainer.getElementsByTagName('p')[0])
+			}
+		}
+	}
+
+	setLogContainer(element) {
+		this.logContainer = element;
 	}
 
 };

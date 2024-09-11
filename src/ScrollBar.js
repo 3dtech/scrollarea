@@ -129,7 +129,7 @@ export default class ScrollBar {
 		var _x = this.view.getViewSize()[0] * (x / this.element.clientWidth);
 		var _y = this.view.getViewSize()[1] * (y / this.element.clientHeight);
 		//console.log('click3', this.view.getViewSize(), _x, _y);
-		this.view.setViewPosition([_x, _y]);
+		//this.view.setViewPosition([_x, _y]);
 	}
 
     setPosition (pos) {

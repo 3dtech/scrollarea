@@ -3,11 +3,11 @@
 <head>
     <meta charset='utf-8'>
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
-    <title>ScrollArea test page</title>
+    <title>ScrollArea test page v2</title>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
 </head>
 <body>
-    <h1>ScrollArea demo</h1>
+    <h1>ScrollArea demo 2</h1>
     <div>
         <button onclick="more()">More</button>
         <div id="area" class="scroll-area">
@@ -35,14 +35,19 @@
         <button onclick="forward(0)">Forward</button>
         <button onclick="home(0)">Home</button>
     </div>
+
+    <div id="log">
+
+    </div>
     
-    <script src="../dist/scrollarea.js"></script>
+    <script src="../dist/scrollarea.js?v=17"></script>
     <script>
         var scrollarea, scrollarea2;
         (function() {
             console.log(typeof ScrollArea);
             scrollarea = new ScrollArea.ScrollArea('area');
             scrollarea2 = new ScrollArea.ScrollArea('area-horizontal');
+            scrollarea.setLogContainer(document.getElementById("log"));
             console.log('ScrollArea', scrollarea);
         })();
 
@@ -67,6 +72,12 @@
 
     </script>
     <style>
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
         .scroll-area {
             width: 40ch;
             height: 32ch;
@@ -111,6 +122,12 @@
 
         .sa-scrollbar-position-bottom {
             height: 0.5em;
+        }
+
+        #log {
+            height: 320px;
+            width: 640px;
+            overflow: scroll;
         }
     </style>
 </body>

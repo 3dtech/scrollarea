@@ -42,7 +42,7 @@ export default class View {
         if (this.getContentSize()[1] <= this.getViewSize()[1]) {
             this._maxPosition[1] = 0;
         }
-        
+        console.log('clamp', this.position, this._maxPosition, this.getViewSize(), this.getContentSize())
         this.position = this.clamp(this.position, vec2.create(), this._maxPosition);
     }
 
@@ -52,7 +52,9 @@ export default class View {
     setViewPosition (position) {
         if(!isNaN(parseFloat(position[0])) && isFinite(position[0]) && !isNaN(parseFloat(position[1])) && isFinite(position[1])){
             this.position = position;
+            console.log('mouseCache4.0', position)
             this.clampPosition();
+            console.log('mouseCache4.1', this.position[0], this.position[1])
         }
     }
 
@@ -60,6 +62,7 @@ export default class View {
         @param delta Vector instance */
     move (delta) {
         if (delta) {
+            console.log('move', delta, this.getViewPosition())
             this.setViewPosition(vec2.sub(delta, this.getViewPosition(), delta));
         }
     }

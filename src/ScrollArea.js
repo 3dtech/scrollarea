@@ -6,6 +6,7 @@ export default class ScrollArea {
 	constructor (_container, contentElement, options) {
         this.container = null; // Parent element
         this.content = null; // Scrolled element
+		this.logContainer = null;
 
         this.options = {
 			"smooth": true, //set if the end of drag has a fade out animation
@@ -55,6 +56,7 @@ export default class ScrollArea {
         this.container.style.position = 'relative';
         this.container.style.overflow = 'hidden';
         this.container.style.userSelect = 'none';
+		this.container.style["webkitUserSelect"] = 'none';
         
         this.attachEvents(this.container);
         
@@ -114,31 +116,27 @@ export default class ScrollArea {
 
         element.addEventListener('mousedown', e => {
             this.mousedown = true;
-			vec2.set(this.lastMouse, e.clientX, e.clientY);
+			vec2.set(this.lastMouse, e.screenX, e.screenY);
 			vec2.set(this.deltaMove, 0, 0);
 			this.lastTime = Date.now();
         });
           
         window.addEventListener('mousemove', e => {
             if (this.mousedown) {
-				vec2.sub(this.mouseCache, vec2.fromValues(e.clientX, e.clientY), this.lastMouse)
-				//this.mouseCache = vec2.fromValues(e.movementX, e.movementY)
-				vec2.set(this.lastMouse, e.clientX, e.clientY);
-
-				//console.log('e6', this.mouseCache)
+				vec2.sub(this.mouseCache, vec2.fromValues(e.screenX, e.screenY), this.lastMouse)
+				vec2.set(this.lastMouse, e.screenX, e.screenY);
 
 				this.calcVelocity(this.mouseCache);
                 if(this.getOption("reverse")){
-                    this.scroll(this.mouseCache);
+                    this.scroll(this.mouseCache.slice());
                 }
                 else{
-                    this.scroll(this.mouseCache);
+                    this.scroll(this.mouseCache.slice());
                 }
             }
         });
           
         window.addEventListener('mouseup', e => {
-            // console.log('mouseup', e);
             this.onEndDrag(this.deltaMove, this.deltaTime);
             this.mousedown = false;
 			//e.stopPropagation();
@@ -146,19 +144,16 @@ export default class ScrollArea {
         });
 
         element.addEventListener("touchstart", e => {
-           // console.log('touchstart', e);
             if (e.touches && e.touches.length > 0) {
 				this.mousedown = true;
                 this.lastTouch = vec2.fromValues(e.touches[0].screenX, e.touches[0].screenY);
 				this.lastTime = Date.now();
-
 				//e.stopPropagation();
             	//e.preventDefault();	
             }
         }, false);
 
         window.addEventListener("touchend", e => {
-            // console.log('touchend', e);
             this.onEndDrag(vec2.negate(this.deltaMove, this.deltaMove), Date.now() - this.lastTime);
             this.lastTouch = null;
 			this.mousedown = false;
@@ -344,19 +339,23 @@ export default class ScrollArea {
 	}
 
     /** Scrolls child elements immediately by given delta within bounds of the container. Does not update mouse position or mouse delta.
-		@param delta Vector containing the scroll delta */
+		@param delta Vector containing the scroll delta 
+	*/
 	scroll (delta) {
 		var scope = this;
-		window.requestAnimationFrame(function() {
-			scope.view.move(delta);
-			delta = vec2.clone(scope.view.getContentPosition());
-			scope.setContentOffset(delta);
-			scope.scrollbarV.setContentPosition(scope.view);
-			scope.scrollbarH.setContentPosition(scope.view);
-			if(scope.updateCallback && typeof scope.updateCallback === "function"){
-				scope.updateCallback(me);
-			}
-		});
+		if (Math.abs(vec2.len(delta)) > 0) {
+			window.requestAnimationFrame(function() {
+				scope.view.move(delta);
+				var _delta = vec2.clone(scope.view.getContentPosition());
+				scope.setContentOffset(_delta);
+				scope.scrollbarV.setContentPosition(scope.view);
+				scope.scrollbarH.setContentPosition(scope.view);
+				if(scope.updateCallback && typeof scope.updateCallback === "function"){
+					scope.updateCallback(me);
+				}
+
+			});
+		}
 	}
 
 	/** 
@@ -401,6 +400,7 @@ export default class ScrollArea {
 		if (this.getOption("swapContainers")) {
 			sign = 1;
 		}
+		//console.log('setContentOffset', this.container.id, pos, sign)
 		this.content.style.transform = "translate("+(pos[0]*sign)+"px,"+(pos[1]*sign)+"px)";
 		this.scrolling = false;
 		this.checkContentPosition();
@@ -452,8 +452,25 @@ export default class ScrollArea {
 			this.smoothScroll(delta, time)
 		}
 		else {
-			this.scroll(delta);
+			this.scroll(delta, delta);
 		}
+	}
+
+	log(message) {
+		if(this.logContainer) {
+			let el = document.createElement("p");
+			let msg = document.createTextNode(message);
+			el.appendChild(msg);
+			this.logContainer.appendChild(el)
+
+			if (this.logContainer.children.length > 10) {
+				this.logContainer.removeChild(this.logContainer.getElementsByTagName('p')[0])
+			}
+		}
+	}
+
+	setLogContainer(element) {
+		this.logContainer = element;
 	}
 
 };
