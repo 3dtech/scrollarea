@@ -115,10 +115,13 @@ export default class ScrollArea {
 		});
 
         element.addEventListener('mousedown', e => {
-            this.mousedown = true;
 			vec2.set(this.lastMouse, e.screenX, e.screenY);
 			vec2.set(this.deltaMove, 0, 0);
 			this.lastTime = Date.now();
+			//let clicks have time to react
+			setTimeout(() => {
+				this.mousedown = true;
+			}, 120);
         });
           
         window.addEventListener('mousemove', e => {

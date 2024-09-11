@@ -1,6 +1,6 @@
 {
   "name": "@3dwayfinder/scrollarea",
-  "version": "1.0.19",
+  "version": "1.0.21",
   "description": "A vanilla JS scrollarea that supports touch, mouse and scrollwheel",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
