@@ -486,7 +486,6 @@ class View_View {
         if (this.getContentSize()[1] <= this.getViewSize()[1]) {
             this._maxPosition[1] = 0;
         }
-        console.log('clamp', this.position, this._maxPosition, this.getViewSize(), this.getContentSize())
         this.position = this.clamp(this.position, vec2_default.a.create(), this._maxPosition);
     }
 
@@ -496,9 +495,7 @@ class View_View {
     setViewPosition (position) {
         if(!isNaN(parseFloat(position[0])) && isFinite(position[0]) && !isNaN(parseFloat(position[1])) && isFinite(position[1])){
             this.position = position;
-            console.log('mouseCache4.0', position)
             this.clampPosition();
-            console.log('mouseCache4.1', this.position[0], this.position[1])
         }
     }
 
@@ -506,7 +503,6 @@ class View_View {
         @param delta Vector instance */
     move (delta) {
         if (delta) {
-            console.log('move', delta, this.getViewPosition())
             this.setViewPosition(vec2_default.a.sub(delta, this.getViewPosition(), delta));
         }
     }
@@ -837,6 +833,7 @@ class ScrollArea_ScrollArea {
 		this.positionClassNames = ["sa-on-left", "sa-on-right", "sa-on-top", "sa-on-bottom"];
         this.mousedown = false;
         this.touchstart = false;
+		this.mousestart = false;
         this._vec2cache = vec2_default.a.create();
         
         var dragElement = this.container;
@@ -914,7 +911,7 @@ class ScrollArea_ScrollArea {
 			vec2_default.a.set(this.deltaMove, 0, 0);
 			this.lastTime = Date.now();
 			//let clicks have time to react
-			setTimeout(() => {
+			this.mousestart = setTimeout(() => {
 				this.mousedown = true;
 			}, 120);
         });
@@ -937,6 +934,7 @@ class ScrollArea_ScrollArea {
         window.addEventListener('mouseup', e => {
             this.onEndDrag(this.deltaMove, this.deltaTime);
             this.mousedown = false;
+			clearTimeout(this.mousestart);
 			//e.stopPropagation();
             //e.preventDefault();	
         });

@@ -42,6 +42,7 @@ export default class ScrollArea {
 		this.positionClassNames = ["sa-on-left", "sa-on-right", "sa-on-top", "sa-on-bottom"];
         this.mousedown = false;
         this.touchstart = false;
+		this.mousestart = false;
         this._vec2cache = vec2.create();
         
         var dragElement = this.container;
@@ -119,7 +120,7 @@ export default class ScrollArea {
 			vec2.set(this.deltaMove, 0, 0);
 			this.lastTime = Date.now();
 			//let clicks have time to react
-			setTimeout(() => {
+			this.mousestart = setTimeout(() => {
 				this.mousedown = true;
 			}, 120);
         });
@@ -142,6 +143,7 @@ export default class ScrollArea {
         window.addEventListener('mouseup', e => {
             this.onEndDrag(this.deltaMove, this.deltaTime);
             this.mousedown = false;
+			clearTimeout(this.mousestart);
 			//e.stopPropagation();
             //e.preventDefault();	
         });

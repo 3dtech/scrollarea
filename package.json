@@ -1,6 +1,6 @@
 {
   "name": "@3dwayfinder/scrollarea",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "description": "A vanilla JS scrollarea that supports touch, mouse and scrollwheel",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -30,7 +30,6 @@
     "grunt": "^1.0.1",
     "grunt-contrib-clean": "^1.1.0",
     "grunt-contrib-copy": "^1.0.0",
-    "grunt-copy": "^0.1.0",
     "grunt-webpack": "^3.1.3",
     "webpack": "^4.20.2",
     "webpack-cli": "^3.1.2"
