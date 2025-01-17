@@ -348,7 +348,7 @@ export default class ScrollArea {
 	*/
 	scroll (delta) {
 		var scope = this;
-		if (Math.abs(vec2.len(delta)) > 0) {
+		if (Math.abs(vec2.len(delta)) >= 0) {
 			window.requestAnimationFrame(function() {
 				scope.view.move(delta);
 				var _delta = vec2.clone(scope.view.getContentPosition());
